@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软考练题系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <!-- 前端应用脚本 -->
+    <script src="./app.js" defer></script>
+</head>
+
+<body>
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>📚 软考练题</h1>
+            <p>信息系统项目管理师</p>
+        </div>
+
+        <!-- 章节导航 -->
+        <div class="sidebar-section sidebar-main">
+            <div class="sidebar-section-title">章节导航</div>
+            <div class="chapter-list" id="chapterList">
+                <!-- 动态生成章节列表 -->
+            </div>
+        </div>
+
+        <!-- 功能按钮 -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">功能</div>
+            <button class="action-btn" onclick="openCountModal()">
+                🎯 设置题量
+            </button>
+            <button class="action-btn" id="wrongModeBtn" onclick="toggleWrongMode()">
+                ❌ 错题模式
+            </button>
+            <button class="action-btn" onclick="openUploadModal()">
+                📤 上传题库
+            </button>
+            <button class="action-btn" onclick="refreshCache()">
+                🔃 刷新题库
+            </button>
+        </div>
+
+        <!-- 统计信息 (固定底部) -->
+        <div class="sidebar-footer">
+            <div class="stats-sidebar">
+                <div class="stat-item">
+                    <div class="value" id="statAccuracy">0%</div>
+                    <div class="label">正确率</div>
+                </div>
+                <div class="stat-item clickable" onclick="filterQuestions('all')">
+                    <div class="value" id="statTotal">0</div>
+                    <div class="label">总题数</div>
+                </div>
+                <div class="stat-item success clickable" onclick="filterQuestions('correct')">
+                    <div class="value" id="statCorrect">0</div>
+                    <div class="label">答对</div>
+                </div>
+                <div class="stat-item error clickable" onclick="filterQuestions('wrong')">
+                    <div class="value" id="statWrong">0</div>
+                    <div class="label">答错</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="main-header">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <h2 id="chapterTitle">软考练题系统</h2>
+            <div></div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressFill"></div>
+        </div>
+
+        <!-- Question Container -->
+        <div class="question-container" id="quizPanel">
+            <div class="question-meta" id="questionMeta">来源：--</div>
+
+            <div class="question-text" id="questionText">
+                正在初始化题库...
+            </div>
+
+            <div class="options-grid" id="optionsContainer">
+                <!-- 选项动态生成 -->
+            </div>
+
+            <div class="explanation-card" id="explanation">
+                <div class="explanation-title">
+                    <span>💡</span> 答案解析
+                </div>
+                <div id="explanationText"></div>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="history-panel" id="historyPanel">
+            <div class="history-header">
+                <h3 id="historyTitle">答题记录</h3>
+                <button class="mini-btn" onclick="backToQuiz()">返回练题</button>
+            </div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </main>
+
+    <!-- Floating Footer -->
+    <div class="floating-footer">
+        <button class="nav-btn exit-wrong" id="exitWrongBtn" onclick="exitWrongMode()" style="display: none;">
+            ✕ 退出错题
+        </button>
+        <button class="nav-btn prev" id="prevBtn" onclick="prevQuestion()">
+            ← 上一题
+        </button>
+        <button class="nav-btn next" id="nextBtn" onclick="nextQuestion()">
+            下一题 →
+        </button>
+    </div>
+
+    <!-- 上传弹窗 -->
+    <div class="modal-backdrop" id="uploadModal">
+        <div class="modal upload-modal">
+            <h3>📤 上传题库</h3>
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">📁</div>
+                <div class="drop-zone-text">拖拽 .md 文件到此处</div>
+                <div class="drop-zone-hint">或点击选择文件</div>
+                <input type="file" id="uploadFileInput" accept=".md" />
+            </div>
+            <div class="selected-file" id="selectedFile"></div>
+            <div id="uploadStatus"></div>
+            <div class="modal-actions">
+                <button class="mini-btn" onclick="closeUploadModal()">取消</button>
+                <button class="mini-btn primary" id="uploadBtn" onclick="handleUpload()">上传并导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 题量选择弹窗 -->
+    <div class="modal-backdrop" id="countModal">
+        <div class="modal">
+            <h3>本次练习题量</h3>
+            <p>请输入题目数量（1 - <span id="totalSpan">0</span>）</p>
+            <input type="number" id="countInput" min="1" value="1" />
+            <div class="modal-actions">
+                <button class="mini-btn" onclick="cancelPracticeCount()">取消</button>
+                <button class="mini-btn primary" onclick="confirmPracticeCount()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 题目列表弹窗 -->
+    <div class="modal-backdrop" id="questionListModal">
+        <div class="modal question-list-modal">
+            <div class="modal-header">
+                <h3 id="questionListTitle">📋 题目列表</h3>
+                <button class="close-btn" onclick="closeQuestionListModal()">✕</button>
+            </div>
+            <div class="question-grid" id="questionGrid">
+                <!-- 动态生成题目格子 -->
+            </div>
+            <div class="modal-legend">
+                <span class="legend-item"><span class="dot unanswered"></span>未答</span>
+                <span class="legend-item"><span class="dot correct"></span>答对</span>
+                <span class="legend-item"><span class="dot wrong"></span>答错</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

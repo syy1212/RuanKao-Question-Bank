@@ -1,0 +1,17 @@
+{
+    "name": "ruankao-api",
+    "version": "1.0.0",
+    "description": "题库练习系统后端 API",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "node --watch app.js"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.39.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "multer": "^2.0.2"
+    }
+}
