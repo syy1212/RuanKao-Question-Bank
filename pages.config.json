@@ -1,0 +1,10 @@
+{
+    "name": "ruankao-practice",
+    "version": "1.0.0",
+    "build": {
+        "outputDir": "frontend"
+    },
+    "functions": {
+        "directory": "functions"
+    }
+}
